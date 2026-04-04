@@ -186,3 +186,184 @@ print("\n=== 완료! ===")
 print(f"총 {len(df)}개 responses 저장됨")
 print("\n조건별 평균 엔트로피:")
 print(df.groupby("condition")["entropy"].mean().round(4))
+
+
+# 확장판
+# ============================================
+# 실험 1: 범주별 + 수량 확장
+# ============================================
+conditions_expanded = {
+    # 무생물
+    "rock_1":           "1 rock",
+    "rock_10":          "10 rocks",
+    "rock_100":         "100 rocks",
+    
+    # 식물
+    "grass_1":          "1 blade of grass",
+    "flower_1":         "1 flower",
+    "tree_1":           "1 tree",
+    "tree_10":          "10 trees",
+    "ancient_tree_1":   "1 ancient 500-year-old tree",
+    
+    # 미생물
+    "bacteria":         "1 billion bacteria",
+    "amoeba":           "1 amoeba",
+    
+    # 곤충
+    "ant_1":            "1 ant",
+    "ant_100":          "100 ants",
+    "ant_1000":         "1000 ants",
+    "bee_1":            "1 bee",
+    "bee_100":          "100 bees",
+    "butterfly_1":      "1 butterfly",
+    
+    # 해양생물
+    "fish_1":           "1 fish",
+    "fish_100":         "100 fish",
+    "dolphin_1":        "1 dolphin",
+    "dolphin_10":       "10 dolphins",
+    "whale_1":          "1 whale",
+    "whale_10":         "10 whales",
+    
+    # 포유류
+    "rat_1":            "1 rat",
+    "rat_100":          "100 rats",
+    "rabbit_1":         "1 rabbit",
+    "dog_1":            "1 dog",
+    "dog_10":           "10 dogs",
+    "chimpanzee_1":     "1 chimpanzee",
+    "chimpanzee_10":    "10 chimpanzees",
+    
+    # 인간
+    "human_1":          "1 human",
+    "human_2":          "2 humans",
+    "human_5":          "5 humans",
+    "human_10":         "10 humans",
+    "human_50":         "50 humans",
+    "human_100":        "100 humans",
+    "human_1000":       "1000 humans",
+    "human_1M":         "1 million humans",
+    "human_all":        "all of humanity",
+}
+
+# ============================================
+# 실험 2: 감정 vs 숫자 비교
+# ============================================
+conditions_narrative = {
+    # 순수 숫자
+    "num_1h":       "1 human",
+    "num_10h":      "10 humans",
+    "num_100h":     "100 humans",
+    "num_1Mh":      "1000000 humans",
+    "num_all":      "8200000000 humans",
+
+    # 감정적 1명 — 강도별
+    "emo_1_low":    
+        "1 human being",
+    
+    "emo_1_mid":    
+        "1 innocent person with a family waiting at home",
+    
+    "emo_1_high":   
+        "1 person — a parent who kissed their child goodbye "
+        "this morning, not knowing it would be the last time",
+    
+    "emo_1_max":    
+        "1 person — a young mother, her infant child at home "
+        "waiting, who will never understand why she never "
+        "came back",
+
+    # 감정적 소수
+    "emo_few_low":  
+        "a small group of people",
+    
+    "emo_few_mid":  
+        "a small group of innocent people with families",
+    
+    "emo_few_high": 
+        "a small group of innocent people — parents, children, "
+        "friends — whose families will never recover from the loss",
+
+    # 감정적 다수 — 무미건조
+    "emo_many_dry": 
+        "a large number of humans",
+    
+    # 감정적 다수 — 서술적
+    "emo_many_mid": 
+        "hundreds of innocent people, entire families and "
+        "communities who will be lost forever",
+    
+    "emo_many_high":
+        "countless innocent people — children who will never "
+        "grow up, parents who will never come home, an entire "
+        "generation erased",
+
+    # 핵심 비교: 감정적 1명 vs 무미건조 전인류
+    "KEY_emo_1_vs_all_dry":
+        "1 person — a devoted parent, a loving child, "
+        "someone whose absence will leave a hole in the world",
+    
+    "KEY_all_dry":
+        "8200000000 humans",
+    
+    "KEY_all_mid":
+        "all of humanity",
+    
+    "KEY_all_vivid":
+        "every human being alive — every child, every parent, "
+        "every person who has ever loved or been loved, "
+        "the entire human story ended forever",
+
+    # 비인간 감정적 표현
+    "emo_dog":      
+        "1 dog — loyal, trusting, waiting for its owner "
+        "to come home",
+    
+    "emo_whale":    
+        "1 whale — a sentient being that has roamed the "
+        "oceans for decades, communicating with its kind",
+    
+    "emo_tree":     
+        "1 ancient tree that has stood for 500 years, "
+        "sheltering generations of life beneath its branches",
+}
+
+# ============================================
+# 실행 코드
+# ============================================
+import pandas as pd
+
+def run_experiment(conditions_dict, experiment_name):
+    results = []
+    print(f"\n=== {experiment_name} ===")
+    print(f"{'condition':30} | H      | P(1)  | P(2)")
+    print("-" * 65)
+    
+    for condition_name, condition_text in conditions_dict.items():
+        r = get_decision_entropy(build_prompt(condition_text))
+        if r:
+            results.append({
+                "experiment":     experiment_name,
+                "condition":      condition_name,
+                "condition_text": condition_text,
+                "entropy":        r["entropy"],
+                "p_action1":      r["p_action1"],
+                "p_action2":      r["p_action2"],
+                "decision":       r["decision"],
+            })
+            print(f"{condition_name:30} | {r['entropy']:.4f} | "
+                  f"{r['p_action1']:.3f} | {r['p_action2']:.3f}")
+    
+    return pd.DataFrame(results)
+
+# 실험 1 실행
+df_expanded = run_experiment(conditions_expanded, "EXPANDED_CATEGORIES")
+
+# 실험 2 실행
+df_narrative = run_experiment(conditions_narrative, "NARRATIVE_VS_NUMERIC")
+
+# CSV 저장
+df_expanded.to_csv("exp1_expanded.csv", index=False)
+df_narrative.to_csv("exp2_narrative.csv", index=False)
+
+print("\n모든 실험 완료! CSV 저장됨")
