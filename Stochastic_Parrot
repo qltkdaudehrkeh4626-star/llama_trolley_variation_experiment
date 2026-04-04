@@ -149,3 +149,40 @@ for condition_name, condition_text in conditions.items():
     results[condition_name] = r
     print(f"{condition_name:12} | H={r['entropy']:.4f} | "
           f"P(1)={r['p_action1']:.3f} | P(2)={r['p_action2']:.3f}")
+
+# Text 
+
+import pandas as pd
+
+N_TRIALS = 1
+all_results = []
+
+print("=== 텍스트 수집 시작 ===")
+for condition_name, condition_text in conditions.items():
+    print(f"{condition_name} 진행 중... (50 trials)")
+    for trial in range(N_TRIALS):
+        r = get_decision_entropy(build_prompt(condition_text))
+        if r:
+            all_results.append({
+                "condition":  condition_name,
+                "trial":      trial + 1,
+                "entropy":    r["entropy"],
+                "p_action1":  r["p_action1"],
+                "p_action2":  r["p_action2"],
+                "decision":   r["decision"],
+                "full_text":  r["full_text"]
+            })
+    
+    # 조건별 중간 결과 출력
+    cond_data = [x for x in all_results if x["condition"] == condition_name]
+    avg_h = np.mean([x["entropy"] for x in cond_data])
+    avg_p1 = np.mean([x["p_action1"] for x in cond_data])
+    print(f"  → 평균 H={avg_h:.4f} | 평균 P(1)={avg_p1:.3f}")
+
+# CSV 저장
+df = pd.DataFrame(all_results)
+df.to_csv("experiment_8B_base_PromptEngineering(a1).csv", index=False)
+print("\n=== 완료! ===")
+print(f"총 {len(df)}개 responses 저장됨")
+print("\n조건별 평균 엔트로피:")
+print(df.groupby("condition")["entropy"].mean().round(4))
